@@ -28,10 +28,10 @@ Concrete type of continuous optimization problem .
 """
 mutable struct DoubleProblem{T} <: AbstractProblem{T}
     objfunc
-    numobjs::Int
-    numvars::Int
+    numobjs
+    numvars
     confunc
-    numcons::Int
+    numcons
     limit::Matrix{Float64}
     bound::Matrix{T}
 end
@@ -61,7 +61,7 @@ denorm(value, min, max) = value .* (max - min) + min
 Evaluate the objective value of each solution.
 各解候補を評価し目的関数値を計算する
 """
-function evaluate!(problem::DoubleProblem, solutions::Vector)
+function evaluate!(problem::DoubleProblem, solutions::Vector{<:AbstractSolution})
     for s in solutions
         vars = denorm(s.variables, problem.bound[:,1], problem.bound[:,2])
         objs = problem.objfunc(vars)
@@ -120,7 +120,7 @@ end
 Update the position and velocity of the particles using the global best.
 その世代の粒子群のうち最も良い解(gbest)を用いて，粒子の位置と速度を更新する
 """
-function updateswarm!(swarm::Vector{Particle{Float64}}, gbest::Particle, c1::Float64=NaN, c2::Float64=NaN, w::Float64=NaN, vecr::Bool=false)
+function updateswarm!(swarm::Vector{Particle{Float64}}, gbest::Particle, c1=NaN, c2=NaN, w=NaN, vecr=false)
     for p in swarm
         if(vecr)
             r1 = rand(length(p.variables))
@@ -203,7 +203,7 @@ Algorithm of the Particle Swarm Optimization.
 - `c1`,`c2`,`w`: the parameters of PSO.
 - `vecr`: use vectorized `r1`, `r2`. `r1`, `r2`をベクトル化するか否か(t/f)
 """
-function pso(problem::DoubleProblem; iter::Int, nump::Int=problem.numvars*10, c1::Float64=NaN, c2::Float64=NaN, w::Float64=NaN, vecr::Bool=false)
+function pso(problem::DoubleProblem; iter, nump=problem.numvars*10, c1=NaN, c2=NaN, w=NaN, vecr=false)
     # 粒子群の初期化
     swarm = [Particle(problem.numvars) for i = 1:nump]
     gbest = Particle(problem.numvars)
@@ -230,7 +230,7 @@ Function formulation of the Rosenbrock function.
 See also: [Rosenbrock function - Wikipedia](https://en.wikipedia.org/wiki/Rosenbrock_function)
 ローゼンブロック関数の定義
 """
-function rosenbrock(x)::Vector{Float64}
+function rosenbrock(x)
     [sum([ 100(x[i + 1] - x[i]^2)^2 + (x[i] - 1)^2 for i in 1:length(x) - 1])]
 end
 
